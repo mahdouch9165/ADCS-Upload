@@ -177,3 +177,6 @@ data/
 
 # Ignore csv files within directory
 *.csv
+
+#Ignore notebooks
+*.ipynb
