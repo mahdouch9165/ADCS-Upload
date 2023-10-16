@@ -180,3 +180,6 @@ data/
 
 #Ignore notebooks
 *.ipynb
+
+#Ignore executables
+*.exe
