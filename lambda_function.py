@@ -29,6 +29,7 @@ def lambda_handler(event, context):
     # AWS Bucket for cohort data
     aws_full_path = os.environ['AWS_LINK']
     data_bucket_name = os.environ['DATA_BUCKET']
+    data_prefix = os.environ['DATA_PREFIX']
     zip_file_bucket = os.environ['ZIP_FILE_S3_BUCKET']
 
     smart_open_transport_params = {
@@ -46,7 +47,7 @@ def lambda_handler(event, context):
     dest_full_path = os.environ['ADDI_TOKEN']
 
     zip_file_s3_path = os.environ['ZIP_FILE_S3_PATH']
-    zipped_chunks = stream_zip(zip_member_files(bucket, data_bucket_name, "cats/", smart_open_transport_params))
+    zipped_chunks = stream_zip(zip_member_files(bucket, data_bucket_name, data_prefix, smart_open_transport_params))
     with smart_open.open(zip_file_s3_path, 'wb') as fout:
         for zipped_chunk in zipped_chunks:
             fout.write(zipped_chunk)
