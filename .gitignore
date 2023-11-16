@@ -183,3 +183,7 @@ data/
 
 #Ignore executables
 *.exe
+
+build/
+
+__pycache__/**
