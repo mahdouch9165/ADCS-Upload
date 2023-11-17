@@ -61,3 +61,27 @@ For automatic scheduling of the process, please head over to EventBridge, and se
 Make sure to use {} as your input JSON, since we are not passing any parameters to the function.
 
 Remember that the token needs to be manually updated depending on the expiration date.
+
+# AWS CDK
+## Setup
+[Install AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)
+
+Bootstrap the AWS CDK stacks. Instructions are on the same page.
+
+Also set up credentials for AWS.
+
+## Deploying
+```sh
+cd cdk
+cdk deploy
+```
+
+## Building notes
+For dependencies, the stack installs dependencies to `cdk/build-acds-upload` and copies `lambda_function.py` to the same folder.
+That folder is used as the Lambda package.
+
+The folder is not cleared each build. If dependencies are removed,
+make sure to delete the folder.
+
+If native library dependencies are used (`numpy` for example) that depend on architecture,
+the build must be done on the same architecture as the Lambda runtime.
