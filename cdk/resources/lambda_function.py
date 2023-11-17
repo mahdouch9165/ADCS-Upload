@@ -5,27 +5,17 @@ import smart_open
 from stat import S_IFREG
 from stream_zip import stream_zip, ZIP_32
 
-def find_azcopy_log():
-    for file_name in os.listdir('/tmp'):
-        if 'log' in file_name.lower():
-            return os.path.join('/tmp', file_name)
-    return None
-    
-def upload_logs_to_s3(log_file_path):
-    s3 = boto3.client('s3')
-    log_file_name = os.path.basename(log_file_path)
-    s3.upload_file(log_file_path, 'azcopy-folder', 'logs/' + log_file_name)
+# AWS Credentials
+os.environ["AZCOPY_LOG_LOCATION"] = "/tmp"
+os.environ["AZCOPY_JOB_PLAN_LOCATION"] = "/tmp"
+
+# Download AzCopy executable from S3
+
+s3 = boto3.client('s3')
+# s3.download_file('azcopy-folder', 'azcopy', '/tmp/azcopy')
+# os.chmod('/tmp/azcopy', 0o755)
 
 def lambda_handler(event, context):
-    # AWS Credentials
-    os.environ["AZCOPY_LOG_LOCATION"] = "/tmp"
-    os.environ["AZCOPY_JOB_PLAN_LOCATION"] = "/tmp"
-    
-    # Download AzCopy executable from S3
-    s3 = boto3.client('s3')
-    # s3.download_file('azcopy-folder', 'azcopy', '/tmp/azcopy')
-    # os.chmod('/tmp/azcopy', 0o755)
-    
     # AWS Bucket for cohort data
     aws_full_path = os.environ['AWS_LINK']
     data_bucket_name = os.environ['DATA_BUCKET']
@@ -39,7 +29,6 @@ def lambda_handler(event, context):
     # TODO
     # 1. Code to fetch target s3 folder
     bucket = boto3.resource('s3').Bucket(data_bucket_name)
-
     
     # 2. Zip up folder and store in temporary S3 of our AWS account
     
@@ -85,6 +74,7 @@ def lambda_handler(event, context):
 
 def zip_member_files(bucket, data_bucket_name, prefix, smart_open_transport_params):
     """
+    Yields the files and data to put in the output zip file
     Args:
     ---------
         bucket: A boto3 Bucket resource
@@ -107,3 +97,13 @@ def zip_member_files(bucket, data_bucket_name, prefix, smart_open_transport_para
                     yield file_data
 
             yield (obj.key, modification_time, mode, ZIP_32, file_data_generator())
+
+def find_azcopy_log():
+    for file_name in os.listdir('/tmp'):
+        if 'log' in file_name.lower():
+            return os.path.join('/tmp', file_name)
+    return None
+    
+def upload_logs_to_s3(log_file_path):
+    log_file_name = os.path.basename(log_file_path)
+    s3.upload_file(log_file_path, 'azcopy-folder', 'logs/' + log_file_name)
