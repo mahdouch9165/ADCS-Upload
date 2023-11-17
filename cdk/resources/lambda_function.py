@@ -100,8 +100,6 @@ def zip_member_files(bucket, data_bucket_name, prefix, smart_open_transport_para
         if obj.key[-1] == '/':
             continue
         
-        print(obj)
-
         with smart_open.open('s3://' + data_bucket_name + '/' + obj.key, 'rb', transport_params=smart_open_transport_params) as fin:
             def file_data_generator():
                 # 32 MiB chunks

@@ -187,3 +187,5 @@ data/
 build/
 
 __pycache__/**
+
+build-acds-upload/
