@@ -61,3 +61,7 @@ For automatic scheduling of the process, please head over to EventBridge, and se
 Make sure to use {} as your input JSON, since we are not passing any parameters to the function.
 
 Remember that the token needs to be manually updated depending on the expiration date.
+
+# Dependencies
+- [stream-zip](https://stream-zip.docs.trade.gov.uk/)
+- [smart_open](https://github.com/piskvorky/smart_open)
