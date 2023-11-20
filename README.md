@@ -80,6 +80,9 @@ cd cdk
 cdk deploy
 ```
 
+The following AWS Lambda variables still need to be manually configured
+- ADDI_TOKEN: The file upload token for ADDI
+
 ## Building notes
 For dependencies, the stack installs dependencies to `cdk/build-acds-upload` and copies `lambda_function.py` to the same folder.
 That folder is used as the Lambda package.
