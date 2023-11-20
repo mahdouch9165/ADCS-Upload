@@ -62,6 +62,10 @@ Make sure to use {} as your input JSON, since we are not passing any parameters 
 
 Remember that the token needs to be manually updated depending on the expiration date.
 
+# Dependencies
+- [stream-zip](https://stream-zip.docs.trade.gov.uk/)
+- [smart_open](https://github.com/piskvorky/smart_open)
+
 # AWS CDK
 ## Setup
 [Install AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)
