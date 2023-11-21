@@ -47,11 +47,18 @@ class ACDSUploadStack(Stack):
                                    environment=dict(
                                         AWS_LINK="TODO",
                                         ADDI_TOKEN="TODO",
-                                        # Temporarily use same bucket for input data
-                                        DATA_PREFIX="cats/",
+                                        # Bucket name containing data which will be put into zip file
                                         DATA_BUCKET=bucket.bucket_name,
+                                        # Only files in this folder within the data bucket
+                                        # will be included the output zip file.
+                                        # This prefix must end in a slash
+                                        DATA_PREFIX="cats/",
+                                        # Currently unused
                                         ZIP_FILE_S3_BUCKET=bucket.bucket_name,
+                                        # Currently unused
                                         ZIP_FILE_S3_KEY="out.zip",
+                                        # The full s3 url path where the output zip will be created.
+                                        # Must be in the form of "s3://{bucket_name}/{path}"
                                         ZIP_FILE_S3_PATH=f"s3://{bucket.bucket_name}/out.zip",
                                    ))
         

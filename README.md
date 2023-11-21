@@ -54,6 +54,13 @@ Inside lambda, go to the configuration tab, and edit the environment variables.
 
 ![Step 7](./images/aws_lambda_configuration.JPG)
 
+Environment variable explanations:
+- DATA_BUCKET: Bucket name containing data which will be put into zip file
+- DATA_PREFIX: Only files in this folder within the data bucket will be included the output zip file. This prefix must end in a slash
+- ZIP_FILE_S3_BUCKET: Currently unused
+- ZIP_FILE_S3_KEY: Currently unused
+- ZIP_FILE_S3_PATH: The full s3 url path where the output zip will be created. Must be in the form of "s3://{bucket_name}/{path}"
+
 #### Step 8: AWS EventBridge Setup (Optional)
 
 For automatic scheduling of the process, please head over to EventBridge, and set a schedule for the execution of your lambda function.
