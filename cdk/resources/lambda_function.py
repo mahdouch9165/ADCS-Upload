@@ -1,5 +1,6 @@
 import datetime
 import os
+import tempfile
 import boto3
 import smart_open
 from stat import S_IFREG
@@ -22,55 +23,60 @@ def lambda_handler(event, context):
     data_prefix = os.environ['DATA_PREFIX']
     zip_file_bucket = os.environ['ZIP_FILE_S3_BUCKET']
 
-    smart_open_transport_params = {
-        'client': s3,
-    }
-    
-    # TODO
-    # 1. Code to fetch target s3 folder
-    bucket = boto3.resource('s3').Bucket(data_bucket_name)
-    
-    # 2. Zip up folder and store in temporary S3 of our AWS account
-    
-    # Azure Blob Storage
-    dest_full_path = os.environ['ADDI_TOKEN']
-
-    zip_file_s3_path = os.environ['ZIP_FILE_S3_PATH']
-    zipped_chunks = stream_zip(zip_member_files(bucket, data_bucket_name, data_prefix, smart_open_transport_params))
-    with smart_open.open(zip_file_s3_path, 'wb') as fout:
-        for zipped_chunk in zipped_chunks:
-            fout.write(zipped_chunk)
-
-    azcopy_command = f'/tmp/azcopy cp "{zip_file_s3_path}" "{dest_full_path}" --recursive=true --log-level=DEBUG'
-
-    # try:
-    #     result = subprocess.run(azcopy_command, check=True, text=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #     print(f"AzCopy stdout:\n{result.stdout}")
-    #     print(f"AzCopy stderr:\n{result.stderr}")
-    # except subprocess.CalledProcessError as e:
-    #     print(f"AzCopy command failed with return code {e.returncode}:")
-    #     print(f"AzCopy stdout:\n{e.stdout}")
-    #     print(f"AzCopy stderr:\n{e.stderr}")
+    with tempfile.NamedTemporaryFile() as temp_file:
+        print("Temp file:", temp_file.name)
+        smart_open_transport_params = {
+            'client': s3,
+            # 'writebuffer': temp_file,
+            # 'client_kwargs': {'S3.Client.get_object': {'RequestPayer': 'requester'}},
+            # 20 MiB part size to reduce memory usage (default 50)
+            'min_part_size': 20 * 2**20,
+        }
         
-    # TODO
-    # 3. Delete local S3 zipped folder
-    # s3.delete_object(
-    #     Bucket=os.environ['ZIP_FILE_S3_BUCKET'],
-    #     Key=os.environ['ZIP_FILE_S3_KEY'],
-    # )
-
-    # Upload the logs to S3
-    # log_file_path = find_azcopy_log()
-    # if log_file_path:
-    #     upload_logs_to_s3(log_file_path)
-    # else:
-    #     print("AzCopy log file not found")
-
-    return {
-        'statusCode': 200,
-        'body': 'AzCopy process completed.'
+        # TODO
+        # 1. Code to fetch target s3 folder
+        bucket = boto3.resource('s3').Bucket(data_bucket_name)
         
-    }
+        # 2. Zip up folder and store in temporary S3 of our AWS account
+        
+        # Azure Blob Storage
+        dest_full_path = os.environ['ADDI_TOKEN']
+
+        zip_file_s3_path = os.environ['ZIP_FILE_S3_PATH']
+        zipped_chunks = stream_zip(zip_member_files(bucket, data_bucket_name, data_prefix, smart_open_transport_params))
+        with smart_open.open(zip_file_s3_path, 'wb', transport_params=smart_open_transport_params) as fout:
+            for zipped_chunk in zipped_chunks:
+                fout.write(zipped_chunk)
+
+        azcopy_command = f'/tmp/azcopy cp "{zip_file_s3_path}" "{dest_full_path}" --recursive=true --log-level=DEBUG'
+
+        # try:
+        #     result = subprocess.run(azcopy_command, check=True, text=True, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #     print(f"AzCopy stdout:\n{result.stdout}")
+        #     print(f"AzCopy stderr:\n{result.stderr}")
+        # except subprocess.CalledProcessError as e:
+        #     print(f"AzCopy command failed with return code {e.returncode}:")
+        #     print(f"AzCopy stdout:\n{e.stdout}")
+        #     print(f"AzCopy stderr:\n{e.stderr}")
+            
+        # TODO
+        # 3. Delete local S3 zipped folder
+        # s3.delete_object(
+        #     Bucket=os.environ['ZIP_FILE_S3_BUCKET'],
+        #     Key=os.environ['ZIP_FILE_S3_KEY'],
+        # )
+
+        # Upload the logs to S3
+        # log_file_path = find_azcopy_log()
+        # if log_file_path:
+        #     upload_logs_to_s3(log_file_path)
+        # else:
+        #     print("AzCopy log file not found")
+
+        return {
+            'statusCode': 200,
+            'body': 'AzCopy process completed.'
+        }
 
 def zip_member_files(bucket, data_bucket_name, prefix, smart_open_transport_params):
     """
@@ -89,11 +95,11 @@ def zip_member_files(bucket, data_bucket_name, prefix, smart_open_transport_para
         # Skip folders
         if obj.key[-1] == '/':
             continue
-        
+
         with smart_open.open('s3://' + data_bucket_name + '/' + obj.key, 'rb', transport_params=smart_open_transport_params) as fin:
             def file_data_generator():
-                # 32 MiB chunks
-                while file_data := fin.read(32 * 2**20):
+                # 64 KiB chunks
+                while file_data := fin.read(64 * 2**10):
                     yield file_data
 
             yield (obj.key, modification_time, mode, ZIP_32, file_data_generator())
